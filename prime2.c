@@ -13,12 +13,18 @@ long long int is_prime(long long int n) {
 }
 
 void bereken_factoren(long long int n, int* ff, int *p) {
-	for (long long int i = 2; i < n; i++) {
+	long long int i = 2;
+
+	do {
+		//printf("we testen %lli op %lli\n", i, n);
 		if (n % i == 0) {
 			*(ff + *p) = i;
 			(*p)++;
+			n = n / i;
 		}
-	}	
+		i++;
+
+	} while (n != 1);
 }
 
 void print_factoren(int* ff, int p) {

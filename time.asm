@@ -4,10 +4,7 @@ section .bss
 
 section .text
 
-global start
-global stop
-
-start:
+start_timing:
  	push rax
 	RDTSC
 	mov [start_time], rax
@@ -15,7 +12,7 @@ start:
 	ret
 
 ; we geven het verschil terug in rax
-stop:
+stop_timing:
 	RDTSC
 	sub rax, [start_time]
 	ret
