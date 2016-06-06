@@ -29,38 +29,27 @@ _start:
 	align_stack
 
 	call start_timing
-	call factor
-	mov [le_factor], rax
 
-	mov rdi, s1
+	mov rax, 1
+
+main_loop:
+	mov rcx, rax
+	call is_factorable
+	cmp rax, 0		
+	jne done
+	mov rax, rcx
+	inc rax
+	jmp main_loop
+
+done:
+	mov rdi, s2
 	mov rsi, rax
 	mov rax, 1
 	call printf 
-
-	mov rcx, 0
-	mov rax, [le_factor]
-_first_loop:
-	inc rcx
-	mov rdx, 0
-	mov rbx, 2
-	div rbx
-	cmp rdx, 0
-	jz _first_loop
-	mov [no_loops], rcx
-	mov [answer], rax
+	
 	call stop_timing
 	mov [instructions], rax
 
-	mov rdi, s2
-	mov rsi, [answer]
-	mov rax, 1
-	call printf
-
-	mov rdi, s3
-	mov rsi, [no_loops]
-	mov rax, 1
-	call printf
-	
 	mov rdi, s4
 	mov rsi, [instructions]
 	mov rax, 1
