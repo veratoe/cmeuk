@@ -1,24 +1,21 @@
 %include "core.mac"
-%include "time.asm"
-%include "factor.asm"
+%include "factors.asm"
 
 extern printf
 
 section .data
 
-	s1: db "Factor: %ld", 10, 0
-	s2: db "Antwoord: %ld", 10, 0
-	s3: db "Loops / 2: %d", 10, 0
-	s4: db "Instructies: %d", 10, 0
+	s1: db "Array: ", 0
+	s2: db "%lld ", 0
+	s3: db "Factoren in 24: %lld ", 0
 
-	fmt: db "%s", 0
+	newline: db 10, 0
 
 section .bss
 
-	instructions: resq 1
-	answer: resq 1
-	no_loops: resq 1
-	le_factor: resq 1
+	factor_array: resb 1
+	le_factors: resq 1
+	n: resq 1
 
 section .text
 
@@ -28,34 +25,70 @@ _start:
 		
 	align_stack
 
-	call start_timing
-
+; vul de array
 	mov rax, 1
+	mov rdi, factor_array
 
-main_loop:
-	mov rcx, rax
-	call is_factorable
-	cmp rax, 0		
-	jne done
-	mov rax, rcx
+fill_array:
+
+	mov [rdi + rax - 1], ax
 	inc rax
-	jmp main_loop
+	cmp rax, 20
+	jbe fill_array
 
-done:
+; print de array		
+	mov rdi, s1
+	mov rax, 0
+	call printf
+
+	mov rbx, 0
+
+
+print_array:
 	mov rdi, s2
-	mov rsi, rax
+	mov rcx, 0
+	mov cl, byte [factor_array + rbx]
+	mov rsi, rcx
 	mov rax, 1
-	call printf 
-	
-	call stop_timing
-	mov [instructions], rax
+	call printf
+	inc rbx
+	cmp rbx, 20
+	jne print_array
 
-	mov rdi, s4
-	mov rsi, [instructions]
+
+	mov rax, 24
+	mov rdi, le_factors
+	call prime_factors
+	mov [n], rcx
+
+	mov rdi, newline
+	mov rsi, 0
+	call printf
+
+	mov rdi, s3
+	mov rsi, [n]
 	mov rax, 1
 	call printf
 
-	; exit
+	mov rbx, 0
+
+print_factoren:
+	mov rdi, s2
+	mov rsi, [le_factors + rbx * 8]
+	mov rax, 1
+	call printf
+	
+	inc rbx	
+	mov rax, rbx
+	inc rax
+	cmp rax, [n]  
+	jne print_factoren
+
+	mov rdi, newline
+	mov rsi, 0
+	call printf
+
+; exit
 	mov rax, 60
 	mov rdi, 0
 	syscall
