@@ -1,92 +1,146 @@
-%include "core.mac"
 %include "factors.asm"
 
 extern printf
 
 section .data
-
-	s1: db "Array: ", 0
-	s2: db "%lld ", 0
-	s3: db "Factoren in 24: %lld ", 0
-
-	newline: db 10, 0
+	s1: db "%d ", 0
+	s_pr: db "Uitkomst is nu: %lld voor %d", 10, 0
+	s_check: db ":check!", 10, 0
+	s_error: db "Woeps, niet goed deelbaar!", 10, 0
+	nl: db 10, 0
+	n: db 2
 
 section .bss
 
-	factor_array: resb 1
-	le_factors: resq 1
-	n: resq 1
+	pP: resb 20
+	fP: resb 20
 
 section .text
 
 global _start
 
 _start:
-		
-	align_stack
 
-; vul de array
-	mov rax, 1
-	mov rdi, factor_array
+_main_loop:	
+	
+_factoren:
 
-fill_array:
+; maak fP leeg
+	mov rcx, 0
+_clear_fP:
+	mov byte [fP + ecx], 0
+	inc rcx
+	cmp rcx, 20
+	jbe _clear_fP
 
-	mov [rdi + rax - 1], ax
-	inc rax
-	cmp rax, 20
-	jbe fill_array
+; lekker factoreren
+	mov rax, 0
+	mov al, [n]
+	mov rbx, fP
+	call prime_factors
+	push rax
 
-; print de array		
+; vgl exponentenc
+	mov rcx, 0
+
+_compare_exponents: 
+	mov al, [fP + rcx]
+	mov bl, [pP + rcx]
+	cmp al, bl
+	jb _cp1
+	mov byte [pP + rcx], al
+_cp1:
+	inc rcx
+	cmp rcx, 20
+	jb _compare_exponents
+
+; print de stand van zaken
+	mov rcx, 0
+
+_print:
 	mov rdi, s1
+	mov rbx, 0
+	mov bl, byte [pP + rcx]
+	mov rsi, rbx	
+	mov rax, 0
+	push rcx
+	call printf
+
+	pop rcx
+	inc rcx
+	cmp rcx, 20
+	jb _print
+	
+	mov rdi, nl
+	mov rsi, 0
 	mov rax, 0
 	call printf
 
+; product van de rambam berekenen
+
+	mov rax, 1
+	mov rcx, 1
 	mov rbx, 0
 
+_calculate_product:
+	mov bl, byte [pP + rcx - 1]
 
-print_array:
-	mov rdi, s2
+_cp_loop:
+	cmp bl, 0
+	je _cp_done
+	mul rcx
+	dec bl
+	jmp _cp_loop
+			
+_cp_done:
+	inc rcx
+	cmp rcx, 20
+	jbe _calculate_product
+
+	push rax
+	mov rdi, s_pr
+	mov rsi, rax
+	mov rdx, 0 
+	mov dl, [n]
+	mov rax, 0
+	call printf
+
 	mov rcx, 0
-	mov cl, byte [factor_array + rbx]
-	mov rsi, rcx
-	mov rax, 1
-	call printf
-	inc rbx
-	cmp rbx, 20
-	jne print_array
+	mov cl, [n]
+_factoratie_test:
 
-
-	mov rax, 24
-	mov rdi, le_factors
-	call prime_factors
-	mov [n], rcx
-
-	mov rdi, newline
+	pop rax
+	push rax
+	mov rdx, 0
+	div rcx
+	cmp rdx, 0
+	jnz _error
+	dec rcx
+	cmp rcx, 0
+	je _ft_done
+	jmp _factoratie_test
+   
+_error:
+	mov rdi, s_error
 	mov rsi, 0
+	mov rax, 0
 	call printf
+	; er ging iets fout
+	jmp _le_done
 
-	mov rdi, s3
-	mov rsi, [n]
-	mov rax, 1
-	call printf
-
-	mov rbx, 0
-
-print_factoren:
-	mov rdi, s2
-	mov rsi, [le_factors + rbx * 8]
-	mov rax, 1
-	call printf
-	
-	inc rbx	
-	mov rax, rbx
-	inc rax
-	cmp rax, [n]  
-	jne print_factoren
-
-	mov rdi, newline
+_ft_done:
+	mov rdi, s_check
 	mov rsi, 0
+	mov rax, 0
 	call printf
+
+_done:
+; check de main loop
+	inc byte [n]
+	cmp byte [n], 20
+	jbe _factoren
+
+_le_done:
 
 ; exit
 	mov rax, 60

@@ -1,0 +1,16 @@
+%macro align_stack 0
+	push rbp
+	mov rbp, rsp
+	push rbx
+	push rsi
+	push rdi
+%endmacro
+
+%macro dealign_stack 0
+	pop rdi
+	pop rsi
+	pop rbx
+	mov rsp, rbp
+	pop rbp
+%endmacro
+
